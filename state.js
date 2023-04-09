@@ -17,6 +17,7 @@ const SIDES = [
   ['yellow', 0, 0],
   ['purple', -1, -1],
 ];
+const GAMES = 5;
 
 function rand(list) {
   return list[parseInt(Math.random() * list.length)];
@@ -350,7 +351,7 @@ async function pregenerate() {
     const games = [];
     for (let i = 0; i < 3; ++i) {
       (async () => {
-        while (true) {
+        for (let j = 0; j < GAMES; j++) {
           try {
             games.push(await createGame(2, puz));
           } catch {}
@@ -358,7 +359,7 @@ async function pregenerate() {
       })();
     }
     let count = 0;
-    while (true) {
+    for (let j = 0; j < GAMES; j++) {
       await new Promise(res => setTimeout(res, 3000 * Math.random() + 1000));
       if (!games.length) continue;
       const game = games.shift();
