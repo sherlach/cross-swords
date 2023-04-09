@@ -329,7 +329,7 @@ async function pregenerate() {
         .map(line => line.split(',')).sort(() => Math.random() - 0.5);
     let count = 0;
     while (lines.length >= 2) {
-      const game = await createGame(2, puz);
+      const game = await createGame(4, puz);
       game.id = /^.*(.*)\.puz$/.exec(puzname)[1] +
           '-' + ('' + ++count).padStart(3, 0);
       for (const url in game.urls) {
