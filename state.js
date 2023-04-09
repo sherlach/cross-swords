@@ -343,7 +343,7 @@ async function pregenerate() {
           JSON.stringify(game, null, 2), 'utf8');
     }
     for (const [id, name] of lines) console.log([id, 'BYE',,, name].join(','));
-  } else if (puz) {
+  } else if (puzname) {
   // my custom mode here
     const puz = puzjs.decode(fs.readFileSync(puzname));
 
