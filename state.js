@@ -323,7 +323,7 @@ module.exports = {
 
 async function pregenerate() {
   const [_, __, puzname, tourney] = process.argv;
-  if (puzname) {
+  if (tourney) {
     const puz = puzjs.decode(fs.readFileSync(puzname));
     const lines = fs.readFileSync(tourney, 'utf8').trim().split('\n')
         .map(line => line.split(',')).sort(() => Math.random() - 0.5);
@@ -343,6 +343,31 @@ async function pregenerate() {
           JSON.stringify(game, null, 2), 'utf8');
     }
     for (const [id, name] of lines) console.log([id, 'BYE',,, name].join(','));
+  } else if (puz) {
+  // my custom mode here
+    const puz = puzjs.decode(fs.readFileSync(puzname));
+
+    const games = [];
+    for (let i = 0; i < 3; ++i) {
+      (async () => {
+        while (true) {
+          try {
+            games.push(await createGame(2, puz));
+          } catch {}
+        }
+      })();
+    }
+    let count = 0;
+    while (true) {
+      await new Promise(res => setTimeout(res, 3000 * Math.random() + 1000));
+      if (!games.length) continue;
+      const game = games.shift();
+      game.id = Date.now();
+      console.log(++count, game.id, JSON.stringify(game.urls));
+      await fs.promises.writeFile(`${__dirname}/made/${game.id}.json`,
+          JSON.stringify(game, null, 2), 'utf8');
+    }
+
   } else {
     const games = [];
     for (let i = 0; i < 3; ++i) {
