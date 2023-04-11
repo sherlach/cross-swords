@@ -312,7 +312,7 @@ async function pregenerate() {
     }
     for (const [id, name] of lines) console.log([id, 'BYE',,, name].join(','));
   } else {
-  // my custom mode here
+  // my custom mode here, for now only 2p
     const puz = puzjs.decode(fs.readFileSync(puzname));
 
     const games = [];
