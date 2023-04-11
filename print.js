@@ -4,7 +4,7 @@ const fs = require('fs');
 const process = require('process');
 
 function formatCell({actual, status}) {
-  if (!actual) return ' ';
+  if (!actual) return '.';
   switch (status) {
     case 'red': return '\x1b[31;1m' + actual + '\x1b[0m';
     case 'blue': return '\x1b[34;1m' + actual + '\x1b[0m';
