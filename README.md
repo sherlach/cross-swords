@@ -35,13 +35,6 @@ Files:
 - Several data files are required but not provided:
 - `clues`: TSV, first column answers, second column clues.
 - `answers`: Same as `clues`, but just the first column.
-- `grids`: Lines of the form
-  `68 ####.#####.####|####.#####.####|##########.####|######.########|...####.#####..|########.######|#####.#####.###|####.#####.####|###.#####.#####|######.########|..#####.####...|########.######|####.##########|####.#####.####|####.#####.####`,
-  where the black squares in the grid are encoded as periods, and the first
-  number is unused.
-    - It is important that these grids fulfill the game constraints like having
-      the main diagonal free to encode the answer and having empty spots in
-      opposite corners for starting locations, as the code will not verify this.
 
 Games:
 - Games are written to disk, which should be replaceable with a database if
@@ -98,3 +91,20 @@ Tournament instructions:
 - When you've dealt with these, the output forms a new input CSV for the next
   round of the bracket. Go back to the `node state.js` step, using the next
   .puz file. Repeat until someone wins!
+
+
+# UPDATED USER NOTES:
+## MAP DESIGN
+- Only American-style puzzle file input is allowed.
+- Leave starting corners open
+
+## INVOCATION
+
+- Experimental mode
+> node state.js puz/puzzlename.puz 
+
+- Tournament mode (default 2player matchups)
+> node state.js puz/puzzlename.puz players.csv
+
+- Tournament mode (3 or 4 player matchups)
+> node state.js puz/puzzlename.puz players.csv num-of-players

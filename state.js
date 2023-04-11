@@ -10,20 +10,18 @@ const COMP_GAME_TIME = 10 * 60 * 1000;
 const GUESS_TIME = 10 * 1000;
 const HINT_TIME = 30 * 1000;
 const HINT_CAP = 3;
-const ANSWER = 'NOWCALLINFACIAL';
 const SIDES = [
   ['red', 0, -1],
   ['blue', -1, 0],
   ['yellow', 0, 0],
   ['purple', -1, -1],
 ];
-const GAMES = 5;
+const GAMES = 10;
 
 function rand(list) {
   return list[parseInt(Math.random() * list.length)];
 }
 
-const GRIDS = fs.readFileSync(__dirname + '/grids', 'utf8').trim().split('\n');
 const CLUES = {};
 for (const line of fs.readFileSync(__dirname + '/clues', 'utf8')
     .trim().split('\n')) {
@@ -33,9 +31,8 @@ for (const line of fs.readFileSync(__dirname + '/clues', 'utf8')
   CLUES[actual].push(text);
 }
 
-async function createGame(sides, competitive = null) {
-  const grid = competitive ? competitive.grid :
-      rand(GRIDS).split(' ')[1].split('|');
+async function createGame(sides, puzzle, tourney_mode = null) {
+  const grid = puzzle.grid;
 
   const game = {
     id: null,
@@ -54,7 +51,6 @@ async function createGame(sides, competitive = null) {
         clues: [],
       };
       if (cell != '#') ret.actual = cell;
-      if (!competitive && y == x) ret.actual = ANSWER[y];
       return ret;
     })),
     clues: [],
@@ -62,8 +58,8 @@ async function createGame(sides, competitive = null) {
     hints: {},
     score: {},
     total: 0,
-    phase: competitive ? 'locked' : 'created',
-    time: competitive ? COMP_GAME_TIME : CASUAL_GAME_TIME,
+    phase: tourney_mode ? 'locked' : 'created',
+    time: tourney_mode ? COMP_GAME_TIME : CASUAL_GAME_TIME,
   };
 
   let index = 1;
@@ -113,41 +109,9 @@ async function createGame(sides, competitive = null) {
     });
   });
 
-  if (competitive) {
     for (const clue of game.clues) {
-      clue.text = competitive.clues[clue.dir][clue.index];
+      clue.text = puzzle.clues[clue.dir][clue.index];
     }
-  } else {
-    let task;
-    const promise = new Promise(resolve => task = child_process.exec(
-        'cat | timeout 15s qxw -b /dev/stdin', (...args) => resolve(args)));
-    task.stdin.write(`
-      .DICTIONARY 1 ${__dirname}/answers
-      .RANDOM 1
-      .UNIQUE 1
-    `);
-    for (const {cells} of game.clues) {
-      const line = [];
-      for (const [y, x] of cells) {
-        line.push(`${y}_${x}`);
-        if (game.cells[y][x].actual) line.push('=' + game.cells[y][x].actual);
-      }
-      task.stdin.write(line.join(' ') + '\n');
-    }
-    task.stdin.end();
-
-    const [error, stdout, stderr] = await promise;
-    if (error) throw error;
-
-    let i = 0;
-    for (const line of stdout.trim().split('\n')) {
-      if (line.startsWith('#')) continue;
-      const [_, actual] = line.toUpperCase().split(' ');
-      const clue = game.clues[i++];
-      clue.cells.forEach(([y, x], i) => game.cells[y][x].actual = actual[i]);
-      clue.text = rand(CLUES[actual]);
-    }
-  }
 
   const update = [];
   for (const [side, y, x] of SIDES.slice(0, sides)) {
@@ -323,14 +287,17 @@ module.exports = {
 };
 
 async function pregenerate() {
-  const [_, __, puzname, tourney] = process.argv;
+  const [_, __, puzname, tourney, playernum] = process.argv;
+
+	const num = playernum ? Number(playernum) : 2;
+
   if (tourney) {
     const puz = puzjs.decode(fs.readFileSync(puzname));
     const lines = fs.readFileSync(tourney, 'utf8').trim().split('\n')
         .map(line => line.split(',')).sort(() => Math.random() - 0.5);
     let count = 0;
     while (lines.length >= 2) {
-      const game = await createGame(2, puz);
+      const game = await createGame(num, puz, true);
       game.id = /^.*(.*)\.puz$/.exec(puzname)[1] +
           '-' + ('' + ++count).padStart(3, 0);
       for (const url in game.urls) {
@@ -344,7 +311,7 @@ async function pregenerate() {
           JSON.stringify(game, null, 2), 'utf8');
     }
     for (const [id, name] of lines) console.log([id, 'BYE',,, name].join(','));
-  } else if (puzname) {
+  } else {
   // my custom mode here
     const puz = puzjs.decode(fs.readFileSync(puzname));
 
@@ -353,35 +320,13 @@ async function pregenerate() {
       (async () => {
         for (let j = 0; j < GAMES; j++) {
           try {
-            games.push(await createGame(2, puz));
+            games.push(await createGame(num, puz, false));
           } catch {}
         }
       })();
     }
     let count = 0;
     for (let j = 0; j < GAMES; j++) {
-      await new Promise(res => setTimeout(res, 3000 * Math.random() + 1000));
-      if (!games.length) continue;
-      const game = games.shift();
-      game.id = Date.now();
-      console.log(++count, game.id, JSON.stringify(game.urls));
-      await fs.promises.writeFile(`${__dirname}/made/${game.id}.json`,
-          JSON.stringify(game, null, 2), 'utf8');
-    }
-
-  } else {
-    const games = [];
-    for (let i = 0; i < 3; ++i) {
-      (async () => {
-        while (true) {
-          try {
-            games.push(await createGame(2));
-          } catch {}
-        }
-      })();
-    }
-    let count = 0;
-    while (true) {
       await new Promise(res => setTimeout(res, 3000 * Math.random() + 1000));
       if (!games.length) continue;
       const game = games.shift();
