@@ -331,7 +331,7 @@ async function pregenerate() {
     let count = 0;
     while (lines.length >= 2) {
       const game = await createGame(2, puz);
-      game.id = /^.*\/(.*)\.puz$/.exec(puzname)[1] +
+      game.id = /^.*(.*)\.puz$/.exec(puzname)[1] +
           '-' + ('' + ++count).padStart(3, 0);
       for (const url in game.urls) {
         const [id, name] = lines.shift();
