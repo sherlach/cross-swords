@@ -100,11 +100,12 @@ Tournament instructions:
 
 ## INVOCATION
 
-- Experimental mode
-> node state.js puz/puzzlename.puz 
-
-- Tournament mode (default 2player matchups)
-> node state.js puz/puzzlename.puz players.csv
+- Casual mode with identical puzzles
+> node state.js --puz puz/puzzlename.puz [--games 6]
 
 - Tournament mode (3 or 4 player matchups)
-> node state.js puz/puzzlename.puz players.csv num-of-players
+> node state.js --puz puz/puzzlename.puz --tourney players.csv [--playernum 4]
+
+- Casual mode with a directory of puzzles *TBI*
+> node state.js --dir puz/ [--games 6]
+Note that this will create 6 games with identical layouts, per layout in puz/

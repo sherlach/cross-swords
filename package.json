@@ -8,10 +8,12 @@
     "express": "^4.17.1",
     "puzjs": "^1.0.2",
     "serve-favicon": "^2.5.0",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "yargs": "^17.7.1"
   },
   "scripts": {
     "clean": "rm -rf ./save && mkdir save",
+    "deep-clean": "rm -rf ./made ./save && mkdir made save",
     "serve": "node server.js"
   }
 }

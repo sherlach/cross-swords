@@ -4,6 +4,11 @@ const child_process = require('child_process');
 const fs = require('fs');
 const process = require('process');
 const puzjs = require('puzjs');
+const yargs = require('yargs/yargs')
+
+const { hideBin } = require('yargs/helpers')
+const argv = yargs(hideBin(process.argv)).argv
+
 
 const CASUAL_GAME_TIME = 15 * 60 * 1000;
 const COMP_GAME_TIME = 10 * 60 * 1000;
@@ -18,6 +23,7 @@ const SIDES = [
 ];
 const GAMES = 10;
 const URL_PREFIX = "http://lachness.monster:9001/";
+
 
 function rand(list) {
   return list[parseInt(Math.random() * list.length)];
@@ -292,28 +298,35 @@ module.exports = {
 };
 
 async function pregenerate() {
-	// TODO if no args, start generating from directory
-	// OR make use --options and arguments using yargs
-	// we would want a PUZNAME (either), TOURNEYFILE (tourney mode), PLAYERNUM (tourney mode)
-	// URL_ OVVERRIDE (either), GAMES OVERRIDE (casual mode)
-	// or a DIRECTORY to generate from (casual mode)
-  const [_, __, puzname, tourney, playernum] = process.argv;
+	// first, you must specify either a --puz or a --dir.
+	// --puz will generate everything to that one puz file.
+	// --dir will iterate though the directory. only for casual mode.
+	
+	// assuming you did not --dir, 
+	// you can choose to --tourney. this is a csv that will enable tourney mode with the listed players as input for the tournament.
+	// 
+	// assuming you did --tourney, --playernum takes effect, allowing you to make a 4p or 3p game/tournament.
+	//
+	// assuming you did not --tourney,  --games will determine how many games with an identical puz file are generated. by default it is set to GAMES.
+	// in tourney mode, --url can be set to change the base of the url.
 
-	const num = playernum ? Number(playernum) : 2;
+	const num = argv.playernum ? Number(argv.playernum) : 2; // only takes effect in tourney generation
+	const base_url = argv.url ? argv.url : URL_PREFIX;
+	const games_generated = argv.games ? Number(argv.games) : GAMES; // only takes effect in casual generation
 
-  if (tourney) {
-    const puz = puzjs.decode(fs.readFileSync(puzname));
-    const lines = fs.readFileSync(tourney, 'utf8').trim().split('\n')
+  if (argv.tourney && argv.puz) {
+    const puz = puzjs.decode(fs.readFileSync(argv.puz));
+    const lines = fs.readFileSync(argv.tourney, 'utf8').trim().split('\n')
         .map(line => line.split(',')).sort(() => Math.random() - 0.5);
     let count = 0;
     while (lines.length >= 2) {
       const game = await createGame(num, puz, true);
-      game.id = /^.*(.*)\.puz$/.exec(puzname)[1] +
+      game.id = /^.*(.*)\.puz$/.exec(argv.puz)[1] +
           '-' + ('' + ++count).padStart(3, 0);
       for (const url in game.urls) {
         const [id, name] = lines.shift();
         game.names[game.urls[url]] = name;
-        console.log(URL_PREFIX+url, [id, game.id, game.urls[url], name].join(','));
+        console.log(base_url + url, [id, game.id, game.urls[url], name].join(','));
         await fs.promises.symlink(`${game.id}.json`,
             `${__dirname}/save/${url}.json`);
       }
@@ -321,13 +334,14 @@ async function pregenerate() {
           JSON.stringify(game, null, 2), 'utf8');
     }
     for (const [id, name] of lines) console.log([id, 'BYE',,, name].join(','));
-  } else {
-    const puz = puzjs.decode(fs.readFileSync(puzname));
+  } else if (argv.puz) {
+
+    const puz = puzjs.decode(fs.readFileSync(argv.puz));
 
     const games = [];
     for (let i = 0; i < 3; ++i) {
       (async () => {
-        for (let j = 0; j < GAMES; j++) {
+        for (let j = 0; j < games_generated; j++) {
           try {
             games.push(await createGame(num, puz, false));
           } catch {}
@@ -335,7 +349,7 @@ async function pregenerate() {
       })();
     }
     let count = 0;
-    for (let j = 0; j < GAMES; j++) {
+    for (let j = 0; j < games_generated; j++) {
       await new Promise(res => setTimeout(res, 3000 * Math.random() + 1000));
       if (!games.length) continue;
       const game = games.shift();
@@ -344,6 +358,11 @@ async function pregenerate() {
       await fs.promises.writeFile(`${__dirname}/made/${game.id}.json`,
           JSON.stringify(game, null, 2), 'utf8');
     }
+	  
+    } else if (argv.dir) {
+	    console.log("ERROR. Not currently supported.");
+  } else {
+    console.log("Error. Invalid input arguments.");
   }
 }
 
