@@ -3,6 +3,7 @@
 const express = require('express');
 const fs = require('fs');
 const socketio = require('socket.io');
+const favicon = require('serve-favicon');
 const state = require('./state');
 require('console-stamp')(console, {label: false, colors: {stamp: 'yellow'}});
 
@@ -12,6 +13,9 @@ const APP = express().set('strict routing', true);
 const IO = socketio.listen(APP.listen(9001));
 let Q = new Promise(resolve => resolve());
 let QQ = 0;
+
+APP.use(favicon(`${__dirname}/images/favicon.ico`));
+
 
 APP.get('/css', (req, res) => res.sendFile('style.css', {root: __dirname}));
 APP.get('/', (req, res) => res.sendFile('queue.html', {root: __dirname}));
