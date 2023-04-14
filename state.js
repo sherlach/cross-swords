@@ -68,8 +68,10 @@ async function createGame(sides, puzzle, tourney_mode = null) {
     row.forEach((cell, x) => {
       if (cell.status == 'wall') return;
       ++game.total;
-      const across = !row[x - 1] || game.cells[y][x - 1].status == 'wall';
-      const down = !game.cells[y - 1] || game.cells[y - 1][x].status == 'wall';
+      //const across = !row[x - 1] || game.cells[y][x - 1].status == 'wall';
+      //const down = !game.cells[y - 1] || game.cells[y - 1][x].status == 'wall';
+      const across = (!row[x - 1] || game.cells[y][x - 1].status == 'wall') && row[x + 1] && game.cells[y][x + 1].status != 'wall';
+      const down = (!game.cells[y - 1] || game.cells[y - 1][x].status == 'wall') && game.cells[y + 1] && game.cells[y + 1][x].status != 'wall';
       const newClue = dir => ({
         status: 'open',
         dir,
@@ -79,6 +81,7 @@ async function createGame(sides, puzzle, tourney_mode = null) {
         visible: {},
       });
       if (across) {
+	      //console.log(y, x);
         const clue = newClue('across');
         if (x > 0) clue.walls.push([y, x - 1]);
         for (let xx = x;;) {
@@ -90,6 +93,7 @@ async function createGame(sides, puzzle, tourney_mode = null) {
             break;
           }
         }
+	      //console.log(clue);
         game.clues.push(clue);
       }
       if (down) {
