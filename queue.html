@@ -28,6 +28,16 @@ input {
   </style>
 </head>
 <body>
+	<pre id="banner">
+
+__   __           _____  _    _  _________________  _____ 
+\ \ / /          /  ___|| |  | ||  _  | ___ \  _  \/  ___|
+ \ V /   ______  \ `--. | |  | || | | | |_/ / | | |\ `--. 
+ /   \  |______|  `--. \| |/\| || | | |    /| | | | `--. \
+/ /^\ \          /\__/ /\  /\  /\ \_/ / |\ \| |/ / /\__/ /
+\/   \/          \____/  \/  \/  \___/\_| \_|___/  \____/ </pre>
+	<p id="tagline">You're going to need JavaScript to play this game!</p>
+	<small>Lovingly built for UNSW Puzzle Society based on MIT Mystery Hunt code</small>
   <label>Your name (optional):<br><input maxlength="32" id="name"></label>
   <button>join the queue</button>
   <script>
@@ -40,6 +50,15 @@ const [button] = $('button').click(() => {
 socket.on('start', data => document.location = '/' + data);
 $('#name').val(localStorage.name || '');
 $('#name').on('input', () => localStorage.name = $('#name').val());
+
+(function loadTagline() {
+		  // Oi! Get your head out of the source code! Cheater.
+  var lines  = ['For the pen is mightier than the sword!', 'A fast-paced duel of words and wit!', 'Nerd.','You can do this!', 'You might be good, but are you *Toby\'s nose* good?', '.--. . -. --. .-- .. -. / .-- --- --.. / .... . . .-.'];
+  var rand = Math.min(Math.floor(Math.random() * lines.length), Math.floor(Math.random() * lines.length));
+
+  document.getElementById('tagline').innerHTML = lines[rand];
+})();
+
   </script>
   <section>
     <h3>how to play</h3>
