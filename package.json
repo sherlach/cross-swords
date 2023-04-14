@@ -1,5 +1,5 @@
 {
-  "name": "xdm",
+  "name": "xswords",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -8,5 +8,9 @@
     "express": "^4.17.1",
     "puzjs": "^1.0.2",
     "socket.io": "^2.3.0"
+  },
+  "scripts": {
+    "clean": "rm -rf ./save && mkdir save",
+    "serve": "node server.js"
   }
 }

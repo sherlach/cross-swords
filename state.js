@@ -17,18 +17,19 @@ const SIDES = [
   ['purple', -1, -1],
 ];
 const GAMES = 10;
+const URL_PREFIX = "http://lachness.monster:9001/";
 
 function rand(list) {
   return list[parseInt(Math.random() * list.length)];
 }
 
-const CLUES = {};
-for (const line of fs.readFileSync(__dirname + '/clues', 'utf8')
+const DICT = {};
+for (const line of fs.readFileSync(__dirname + '/dict', 'utf8')
     .trim().split('\n')) {
   let [actual, text] = line.split('\t');
   actual = actual.toUpperCase();
-  CLUES[actual] = CLUES[actual] || [];
-  CLUES[actual].push(text);
+  DICT[actual] = DICT[actual] || [];
+  DICT[actual].push(text);
 }
 
 async function createGame(sides, puzzle, tourney_mode = null) {
@@ -120,7 +121,7 @@ async function createGame(sides, puzzle, tourney_mode = null) {
         updateVision(game, side, yy, xx, update);
       }
     }
-    game.urls[rand(Object.keys(CLUES)).toLowerCase() +
+    game.urls[rand(Object.keys(DICT)).toLowerCase() +
         '-' + String(Date.now() % 1000).padStart(3, 0)] = side;
     game.names[side] = null;
     game.hints[side] = {count: 0, time: 0};
@@ -303,7 +304,7 @@ async function pregenerate() {
       for (const url in game.urls) {
         const [id, name] = lines.shift();
         game.names[game.urls[url]] = name;
-        console.log([id, url, game.id, game.urls[url], name].join(','));
+        console.log(URL_PREFIX+url, [id, game.id, game.urls[url], name].join(','));
         await fs.promises.symlink(`${game.id}.json`,
             `${__dirname}/save/${url}.json`);
       }
@@ -312,7 +313,6 @@ async function pregenerate() {
     }
     for (const [id, name] of lines) console.log([id, 'BYE',,, name].join(','));
   } else {
-  // my custom mode here, for now only 2p
     const puz = puzjs.decode(fs.readFileSync(puzname));
 
     const games = [];
