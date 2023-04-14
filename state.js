@@ -292,6 +292,11 @@ module.exports = {
 };
 
 async function pregenerate() {
+	// TODO if no args, start generating from directory
+	// OR make use --options and arguments using yargs
+	// we would want a PUZNAME (either), TOURNEYFILE (tourney mode), PLAYERNUM (tourney mode)
+	// URL_ OVVERRIDE (either), GAMES OVERRIDE (casual mode)
+	// or a DIRECTORY to generate from (casual mode)
   const [_, __, puzname, tourney, playernum] = process.argv;
 
 	const num = playernum ? Number(playernum) : 2;
